@@ -1,4 +1,4 @@
-# export JulianDay
+export JulianDay
 export isinvalid
 
 struct JulianDay
