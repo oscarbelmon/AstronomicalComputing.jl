@@ -1,3 +1,6 @@
+export JulianDay
+export isinvalid
+
 struct JulianDay
     year::Int64
     month::Int64
