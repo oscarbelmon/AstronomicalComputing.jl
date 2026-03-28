@@ -1,5 +1,5 @@
 module AstronomicalComputing
 
-include("julia_day.jl")
+include("julian_day.jl")
 
 end
