@@ -1,5 +1,7 @@
 export JulianDay
 export isinvalid
+export day_fraction
+export fraction_to_hms
 
 struct JulianDay
     year::Int64
@@ -8,13 +10,10 @@ struct JulianDay
     hour::Int64
     minute::Int64
     second::Float64
-    JulianDay(year::Int64, moth::Int64, day::Int64) = isinvalid(year, moth, day) ? error("Invalid date") : new(year, moth, day, 0, 0, 0)
+    JulianDay(year::Int64, month::Int64, day::Int64) = isinvalid(year, month, day) ? error("Invalid date") : new(year, month, day, 0, 0, 0)
     JulianDay(t::Int64) = new(set_from_jd(date_to_julian_day(1970, 1, 1, false) + t / 86400000)...)
     JulianDay(julianday::Float64) = new(set_from_jd(julianday)...)
 end
-
-const START_INVALID::JulianDay = JulianDay(1582, 10, 4)
-const END_INVALID::JulianDay = JulianDay(1582, 10, 15)
 
 function set_from_jd(julianday::Float64)
     z = trunc(Int, abs(julianday) )
@@ -41,15 +40,15 @@ function set_from_jd(julianday::Float64)
     if month > 2
         year = year - 1
     end
-    hour, minutes, second = set_day_fraction(exactday - day)
+    hour, minutes, second = fraction_to_hms(exactday - day)
     return year, month, day, hour, minutes, second
 end
 
-function get_day_fraction(julianday::JulianDay)
+function day_fraction(julianday::JulianDay)
     return (julianday.hour + julianday.minute / 60 + julianday.second / 3600) / 24
 end
 
-function set_day_fraction(fraction::Float64)
+function fraction_to_hms(fraction::Float64)
     frac = fraction * 24
     hour = trunc(Int, frac)
     frac = (frac - hour) * 60
@@ -58,8 +57,8 @@ function set_day_fraction(fraction::Float64)
     return hour, minute, second
 end
 
-function get_julian_day(julianday::JulianDay)
-    return date_to_julian_day(julianday.year, julianday.month, julianday.day, isjulian(julianday)) + get_day_fraction(julianday)
+function julian_day(julianday::JulianDay)::Float64
+    return date_to_julian_day(julianday.year, julianday.month, julianday.day, isjulian(julianday)) + day_fraction(julianday)
 end
 
 function isinvalid(julianday::JulianDay)
@@ -71,15 +70,6 @@ function isinvalid(year::Int64, month::Int64, day::Int64)
 end
 
 function isjulian(julianday::JulianDay)
-    # if julianday.year < 1582
-    #     return true
-    # elseif julianday.year == 1582 && julianday.month < 10
-    #     return true
-    # elseif julianday.year == 1582 && julianday.month == 10 && julianday.day < 15
-    #     return true
-    # else
-    #     return false
-    # end
     return julianday < START_INVALID
 end
 
@@ -109,3 +99,8 @@ Base.show(io::IO, julianday::JulianDay) = print(io, string(julianday.year) * "-"
                                                 string(julianday.hour) * ":" *
                                                 string(julianday.minute) * ":" *
                                                 string(julianday.second))
+
+const START_INVALID::JulianDay = JulianDay(1582, 10, 4)
+const END_INVALID::JulianDay = JulianDay(1582, 10, 15)
+
+
